@@ -4,6 +4,7 @@ import com.example.calculator.dto.ExpressionDto;
 import com.example.calculator.dto.ResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.core.ParameterizedTypeReference;
@@ -27,33 +28,37 @@ public class CallbackClient {
 
     public ResultDto sendExpressionAsynchronouslyWithCallback(Double a, Double b, char operator) {
         LOGGER.info("Sending expression {} {} {} to queue", a, operator, b);
+
         ExpressionDto expressionDto = new ExpressionDto(a, b, operator);
 
         ResultDto resultDto = null;
 
-        AsyncRabbitTemplate.RabbitConverterFuture<ResultDto> rabbitConverterFuture =
-                asyncRabbitTemplate.convertSendAndReceiveAsType(
-                        directExchange.getName(),
-                        ROUTING_KEY,
-                        expressionDto,
-                        new ParameterizedTypeReference<ResultDto>() {});
-
-        rabbitConverterFuture.addCallback(new ListenableFutureCallback<ResultDto>() {
-            @Override
-            public void onFailure(Throwable ex) {
-                LOGGER.error("Cannot get response for expression {}", expressionDto, ex);
-            }
-
-            @Override
-            public void onSuccess(ResultDto registrationDto) {
-                LOGGER.info("Expression received {}", expressionDto);
-            }
-        });
+        AsyncRabbitTemplate.RabbitConverterFuture<ResultDto> rabbitConverterFuture;
 
         try {
+             rabbitConverterFuture = asyncRabbitTemplate.convertSendAndReceiveAsType(
+                            directExchange.getName(),
+                            ROUTING_KEY,
+                            expressionDto,
+                            new ParameterizedTypeReference<ResultDto>() {
+                            });
+
+            rabbitConverterFuture.addCallback(new ListenableFutureCallback<ResultDto>() {
+                @Override
+                public void onFailure(Throwable ex) {
+                    LOGGER.error("Cannot get response for expression {}", expressionDto, ex);
+                }
+
+                @Override
+                public void onSuccess(ResultDto registrationDto) {
+                    LOGGER.info("Expression received {}", expressionDto);
+                }
+            });
+
             resultDto = rabbitConverterFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+
+        } catch (InterruptedException | ExecutionException  exception) {
+            LOGGER.error("Error with sending request to queue, {}", exception.getMessage());
         }
 
         return resultDto;

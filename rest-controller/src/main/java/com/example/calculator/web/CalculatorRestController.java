@@ -2,16 +2,19 @@ package com.example.calculator.web;
 
 import com.example.calculator.dto.ResultDto;
 import com.example.calculator.service.CallbackClient;
+import com.example.calculator.validator.NonZero;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @RequestMapping("v1/calculator")
 public class CalculatorRestController {
     private final Logger LOGGER = LoggerFactory.getLogger(CalculatorRestController.class);
@@ -49,7 +52,7 @@ public class CalculatorRestController {
     }
 
     @GetMapping("/divide")
-    public ResponseEntity<?> divide(@RequestParam(name = "a") Double a, @RequestParam(name = "b") Double b) {
+    public ResponseEntity<?> divide(@RequestParam(name = "a") Double a, @RequestParam(name = "b") @NonZero Double b) {
         LOGGER.info("Received a {} and b {} for divide", a, b);
 
         ResultDto resultDto = callbackClient.sendExpressionAsynchronouslyWithCallback(a, b, '/');

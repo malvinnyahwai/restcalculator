@@ -22,7 +22,7 @@ public class ExpressionConsumer {
 
     @RabbitListener(queues = "#{queue.name}", concurrency = "10")
     public ResultDto receive(ExpressionDto expressionDto) {
-        LOGGER.info("Received an expression {}", expressionDto);
+        LOGGER.info("Received an expression {} from queue", expressionDto);
 
         Objects.requireNonNull(expressionDto.getA(), "a in expression cannot be null");
         Objects.requireNonNull(expressionDto.getB(), "b in expression cannot be null");
