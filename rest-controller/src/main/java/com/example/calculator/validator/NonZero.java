@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Target( { ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NonZero {
-    String message() default "invalid value of b, Cannot divide by zero";
+    String message() default "Invalid value b: Cannot divide by zero";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

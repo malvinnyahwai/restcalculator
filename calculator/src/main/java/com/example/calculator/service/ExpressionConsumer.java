@@ -47,7 +47,7 @@ public class ExpressionConsumer {
                 break;
         }
 
-        LOGGER.info("Evaluted expression {}, and result is {}", expressionDto, result);
+        LOGGER.info("Evaluated expression {}, and result is {}", expressionDto, result);
 
         return new ResultDto(result);
 
