@@ -1,10 +1,13 @@
 package com.example.calculator.service;
 
+import com.example.calculator.dto.ControlClass;
 import com.example.calculator.dto.ExpressionDto;
 import com.example.calculator.dto.ResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -22,7 +25,12 @@ public class ExpressionConsumer {
 
     @RabbitListener(queues = "#{queue.name}", concurrency = "10")
     public ResultDto receive(ExpressionDto expressionDto) {
+        if(MDC.getCopyOfContextMap() == null)
+            MDC.put("UNIQUE_ID", ControlClass.mdId);
+
         LOGGER.info("Received an expression {} from queue", expressionDto);
+
+        LOGGER.info("ControlClass mdId value {}", ControlClass.mdId);
 
         Objects.requireNonNull(expressionDto.getA(), "a in expression cannot be null");
         Objects.requireNonNull(expressionDto.getB(), "b in expression cannot be null");

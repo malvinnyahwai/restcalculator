@@ -12,5 +12,12 @@
     <artifactId>calculator</artifactId>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <version>5.3.5</version>
+        </dependency>
+    </dependencies>
 
 </project>

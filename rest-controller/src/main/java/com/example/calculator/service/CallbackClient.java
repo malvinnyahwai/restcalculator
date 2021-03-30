@@ -1,9 +1,11 @@
 package com.example.calculator.service;
 
+import com.example.calculator.dto.ControlClass;
 import com.example.calculator.dto.ExpressionDto;
 import com.example.calculator.dto.ResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -19,7 +21,7 @@ public class CallbackClient {
 
     private final AsyncRabbitTemplate asyncRabbitTemplate;
     private final DirectExchange directExchange;
-    public static final String ROUTING_KEY = "expression";
+    private static final String ROUTING_KEY = "expression";
 
     public CallbackClient(AsyncRabbitTemplate asyncRabbitTemplate, DirectExchange directExchange) {
         this.asyncRabbitTemplate = asyncRabbitTemplate;
@@ -27,40 +29,47 @@ public class CallbackClient {
     }
 
     public ResultDto sendExpressionAsynchronouslyWithCallback(Double a, Double b, char operator) {
-        LOGGER.info("Sending expression {} {} {} to queue", a, operator, b);
+        synchronized (this) {
+            LOGGER.info("Sending expression {} {} {} to queue", a, operator, b);
 
-        ExpressionDto expressionDto = new ExpressionDto(a, b, operator);
+            ControlClass.mdId = MDC.get("UNIQUE_ID");
 
-        ResultDto resultDto = null;
+            ExpressionDto expressionDto = new ExpressionDto(a, b, operator);
 
-        AsyncRabbitTemplate.RabbitConverterFuture<ResultDto> rabbitConverterFuture;
+            ResultDto resultDto = null;
 
-        try {
-             rabbitConverterFuture = asyncRabbitTemplate.convertSendAndReceiveAsType(
-                            directExchange.getName(),
-                            ROUTING_KEY,
-                            expressionDto,
-                            new ParameterizedTypeReference<ResultDto>() {
-                            });
+            AsyncRabbitTemplate.RabbitConverterFuture<ResultDto> rabbitConverterFuture;
 
-            rabbitConverterFuture.addCallback(new ListenableFutureCallback<ResultDto>() {
-                @Override
-                public void onFailure(Throwable ex) {
-                    LOGGER.error("Cannot get response for expression {}", expressionDto, ex);
-                }
+            try {
+                rabbitConverterFuture = asyncRabbitTemplate.convertSendAndReceiveAsType(
+                        directExchange.getName(),
+                        ROUTING_KEY,
+                        expressionDto,
+                        new ParameterizedTypeReference<ResultDto>() {
+                        });
 
-                @Override
-                public void onSuccess(ResultDto registrationDto) {
-                    LOGGER.info("Expression received {}", expressionDto);
-                }
-            });
+                if (MDC.getCopyOfContextMap() == null)
+                    MDC.put("UNIQUE_ID", ControlClass.mdId);
 
-            resultDto = rabbitConverterFuture.get();
+                rabbitConverterFuture.addCallback(new ListenableFutureCallback<ResultDto>() {
+                    @Override
+                    public void onFailure(Throwable ex) {
+                        LOGGER.error("Cannot get response for expression {}", expressionDto, ex);
+                    }
 
-        } catch (InterruptedException | ExecutionException  exception) {
-            LOGGER.error("Error with sending request to queue, {}", exception.getMessage());
+                    @Override
+                    public void onSuccess(ResultDto registrationDto) {
+                        LOGGER.info("Expression received {}", expressionDto);
+                    }
+                });
+
+                resultDto = rabbitConverterFuture.get();
+
+            } catch (InterruptedException | ExecutionException exception) {
+                LOGGER.error("Error with sending request to queue, {}", exception.getMessage());
+            }
+
+            return resultDto;
         }
-
-        return resultDto;
     }
 }
