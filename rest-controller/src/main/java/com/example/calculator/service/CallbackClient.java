@@ -29,7 +29,7 @@ public class CallbackClient {
     }
 
     public ResultDto sendExpressionAsynchronouslyWithCallback(Double a, Double b, char operator) {
-        synchronized (this) {
+        synchronized (ControlClass.class) {
             LOGGER.info("Sending expression {} {} {} to queue", a, operator, b);
 
             ControlClass.mdId = MDC.get("UNIQUE_ID");
