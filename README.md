@@ -14,7 +14,7 @@ docker-compose up
 mvn clean install
 ```
 
-### calculatorws-calculator
+### Rest Calculator
 ```
 java -jar rest-controller/target/restcontroller-0.0.1-SNAPSHOT
 ```
