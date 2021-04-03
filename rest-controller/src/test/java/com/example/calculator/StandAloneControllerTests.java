@@ -36,7 +36,7 @@ public class StandAloneControllerTests {
     @Test
     public void testSubtractRestEndpoint() throws Exception {
         Mockito.when(callbackClient.sendExpressionAsynchronouslyWithCallback(2.0, 2.0, '-')).thenReturn(new ResultDto(0.0));
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8081/v1/calculator/sub?a=2&b=2"))
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8081/v1/calculator/subtract?a=2&b=2"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("result", Matchers.is(0.0)));
     }
