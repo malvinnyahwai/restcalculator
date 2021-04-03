@@ -13,7 +13,10 @@ docker-compose up
 ```
 mvn clean install
 ```
-
+### Run tests
+```
+mvn test
+```
 ### Run project
 ```
 java -jar rest-controller/target/restcontroller-0.0.1-SNAPSHOT
@@ -36,11 +39,11 @@ HTTP/1.1 200 OK Content-Type: application/json
 
 ### Subtraction (subtract)
 ```
-curl -i "http://localhost:8080/sub?a={num1}&b={num2}"
+curl -i "http://localhost:8080/subtract?a={num1}&b={num2}"
 ```
 ### Example
 ```
-curl -i "http://localhost:8080/sub?a=10&b=5"
+curl -i "http://localhost:8080/subtract?a=10&b=5"
 ...
 HTTP/1.1 200 OK Content-Type: application/json
 {"result":5}
